@@ -1,0 +1,68 @@
+version: "3.9"  # Обновленная версия
+
+services:
+  db:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    container_name: db
+    environment:
+      POSTGRES_USER: dvn
+      POSTGRES_PASSWORD: lbvdbrybr25
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dvn-network
+
+  php:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    container_name: php
+    environment:
+      - DATABASE_URL
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - dvn-network
+    depends_on:
+      - db
+
+  nextjs:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile  # Теперь Dockerfile существует!
+    container_name: nextjs
+    ports:
+      - 3000:3000
+    environment:
+      NEXT_PUBLIC_API_URL: "http://nginx/api"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - dvn-network
+    depends_on:
+      - nginx
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/public:/usr/share/nginx/html/static
+      - ./backend/public:/usr/share/nginx/html/api
+    networks:
+      - dvn-network
+    depends_on:
+      - php
+
+volumes:
+  postgres_data:
+
+networks:
+  dvn-network:
+    driver: bridge
