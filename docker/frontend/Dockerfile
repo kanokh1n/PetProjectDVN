@@ -1,23 +1,28 @@
-# Base image
-FROM node:18-alpine
+# Базовый образ
+FROM node:20-alpine AS builder
 
-# Set working directory
+# Установка рабочей директории
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Копирование зависимостей
+COPY package.json ./
 
-# Install dependencies
-RUN npm install
+# Установка зависимостей
+RUN yarn install
 
-# Copy project files
+# Копирование исходного кода
 COPY . .
 
-# Build the app
-RUN npm run build
+# Сборка приложения
+RUN yarn build
 
-# Expose port
-EXPOSE 3000
+# Производственный образ
+FROM node:18-alpine
 
-# Start the app
-CMD ["npm", "run", "dev"]
+WORKDIR /app
+
+# Копирование собранного приложения
+COPY --from=builder /app/build ./build
+
+# Запуск сервера
+CMD ["npx", "serve", "-s", "build"]

@@ -1,6 +1,4 @@
 DOCKER_COMPOSE := docker-compose
-BACKEND := backend-1
-FRONTEND := frontend
 
 build:
 	${DOCKER_COMPOSE} build
@@ -20,9 +18,3 @@ down:
 restart: stop start
 
 rebuild: down build up
-
-backend:
-	${DOCKER_COMPOSE} exec ${BACKEND} /bin/bash
-
-frontend:
-	${DOCKER_COMPOSE} exec ${FRONTEND} /bin/bash
