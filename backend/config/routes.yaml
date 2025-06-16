@@ -7,3 +7,11 @@ api_test:
     path: /api/test
     controller: App\Controller\DefaultController::test
     methods: GET
+api_register:
+    path: /api/register
+    controller: App\Controller\RegistrationController::register
+    methods: POST
+api_login:
+    path: /api/login
+    controller: App\Controller\SecurityController::login
+    methods: POST

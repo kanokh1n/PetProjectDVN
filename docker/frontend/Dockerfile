@@ -10,6 +10,9 @@ COPY package.json ./
 # Установка зависимостей
 RUN yarn install
 
+# Установка curl
+RUN apk add --no-cache curl
+
 # Копирование исходного кода
 COPY . .
 
