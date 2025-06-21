@@ -36,7 +36,6 @@ final class RegistrationController extends AbstractController
         $password = $userData['password'];
 
         try {
-
             $user = $this->userService->registerUser($email, $password);
             $token = $this->jwtManager->create($user);
 

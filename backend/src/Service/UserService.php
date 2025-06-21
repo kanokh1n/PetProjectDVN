@@ -24,7 +24,7 @@ class UserService
             ->findOneBy(['email' => $email]);
 
         if ($existingUser) {
-            throw new \Exception('User with this email already exists');
+            throw new \Exception('Пользователь с таким email уже сущетсвует');
         }
 
         $user = new User();

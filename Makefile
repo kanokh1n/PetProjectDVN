@@ -1,16 +1,13 @@
 DOCKER_COMPOSE := docker-compose
 
-build:
-	${DOCKER_COMPOSE} build
+up:
+	sudo ${DOCKER_COMPOSE} up --build
 
 start:
 	${DOCKER_COMPOSE} start
 
 stop:
 	${DOCKER_COMPOSE} stop
-
-up:
-	${DOCKER_COMPOSE} up -d --remove-orphans
 
 down:
 	${DOCKER_COMPOSE} down
