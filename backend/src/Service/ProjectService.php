@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Projects;
 use Doctrine\ORM\EntityManagerInterface;
 
-
 class ProjectService
 {
     private $entityManager;
@@ -48,7 +47,7 @@ class ProjectService
             throw new \Exception('Проект не найден');
         }
 
-        if ($project->getUserId() !== $projectData['user']->getId())  {
+        if ($project->getUser()->getId() !== $projectData['user']->getId())  {
             throw new \Exception('У вас нет прав на редактирование этого проекта');
         }
 
@@ -57,7 +56,7 @@ class ProjectService
                 ->getRepository(Projects::class)
                 ->findOneBy(['title' => $projectData['title']]);
 
-            if ($existingProject && $existingProject->getId() !== $project->getId()) {
+            if ($existingProject && $existingProject->getTitle() !== $project->getTitle()) {
                 throw new \Exception('Проект с таким названием уже существует');
             }
 

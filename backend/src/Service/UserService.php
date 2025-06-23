@@ -10,7 +10,6 @@ class UserService
     private $entityManager;
     private $passwordHasher;
 
-
     public function __construct(EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher)
     {
         $this->entityManager = $entityManager;
