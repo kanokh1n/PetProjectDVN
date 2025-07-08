@@ -28,6 +28,7 @@ final class ProjectController extends AbstractController
         $user = $this->getCurrentUser();
 
         $projectData = json_decode($request->getContent(), true);
+        echo $projectData;
 
         if (empty($projectData['title'])) {
             return $this->json(['error' => 'Введите обязательные поля'], Response::HTTP_BAD_REQUEST);
