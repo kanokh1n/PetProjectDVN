@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+GIT_DIR="../../.git"
+
+cd frontend
+
+npx lint-staged
