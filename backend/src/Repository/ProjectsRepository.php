@@ -16,28 +16,27 @@ class ProjectsRepository extends ServiceEntityRepository
         parent::__construct($registry, Projects::class);
     }
 
-    //    /**
-    //     * @return Projects[] Returns an array of Projects objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Находит проект по названию
+     */
+    public function findOneByTitle(string $title): ?Projects
+    {
+        return $this->findOneBy(['title' => $title]);
+    }
 
-    //    public function findOneBySomeField($value): ?Projects
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Находит проект по ID
+     */
+    public function findOneById(int $id): ?Projects
+    {
+        return $this->find($id);
+    }
+
+    /**
+     * Проверяет существование проекта по названию
+     */
+    public function existsByTitle(string $title): bool
+    {
+        return null !== $this->findOneByTitle($title);
+    }
 }

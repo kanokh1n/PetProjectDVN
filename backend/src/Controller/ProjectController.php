@@ -16,13 +16,14 @@ final class ProjectController extends AbstractController
     use CurrentUserTrait;
     private $projectService;
 
+
     public function __construct(ProjectService $projectService, Security $security)
     {
         $this->projectService = $projectService;
         $this->security = $security;
     }
 
-    #[Route('/api/project/create', name: 'app_create_project')]
+    #[Route('/api/project/create', name: 'app_create_project', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         $user = $this->getCurrentUser();
@@ -50,7 +51,7 @@ final class ProjectController extends AbstractController
         }
     }
 
-    #[Route('/api/project/update', name: 'app_update_project')]
+    #[Route('/api/project/update', name: 'app_update_project', methods: ['PUT'])]
     public function update(Request $request): JsonResponse
     {
         try {
