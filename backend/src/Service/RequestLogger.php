@@ -21,7 +21,6 @@ class RequestLogger
         $log->setPath($request->getPathInfo());
         $log->setStatusCode($response->getStatusCode());
         $log->setError(mb_substr($response->getContent(), 0, 500));
-
         $this->entityManager->persist($log);
         $this->entityManager->flush();
     }

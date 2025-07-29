@@ -3,8 +3,9 @@
 namespace App\Controller;
 
 use App\Service\ProjectService;
-use App\Utils\CurrentUserTrait;
+use App\Service\RequestLogger;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,41 +14,35 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ProjectController extends AbstractController
 {
-    use CurrentUserTrait;
-    private $projectService;
-
-
-    public function __construct(ProjectService $projectService, Security $security)
-    {
-        $this->projectService = $projectService;
-        $this->security = $security;
-    }
+    public function __construct(
+        private readonly ProjectService $projectService,
+        private readonly Security $security,
+        private readonly RequestLogger $requestLogger
+    ){}
 
     #[Route('/api/project/create', name: 'app_create_project', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $user = $this->getCurrentUser();
-
+        $user = $this->getUser();
         $projectData = json_decode($request->getContent(), true);
 
-        if (empty($projectData['title'])) {
-            return $this->json(['error' => 'Введите обязательные поля'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $projectData['user'] = $user;
-
         try {
+            if (empty($projectData['title'])) {
+                throw new \Exception('Title is required');
+            }
+
+            $projectData['user'] = $user;
             $project = $this->projectService->createProject($projectData);
 
             return $this->json([
-                'message' => 'Проект успешно создан',
-                'project' => $project->getId(),
+                'message' => 'Project created successfully',
+                'project' => $project->getTitle(),
                 'userId' => $user->getId()
             ]);
         } catch (\Exception $e) {
-            return $this->json([
-                'error' => $e->getMessage()
-            ], Response::HTTP_BAD_REQUEST);
+            $response = $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            $this->requestLogger->logRequest($request, $response);
+            return $response;
         }
     }
 
@@ -55,28 +50,28 @@ final class ProjectController extends AbstractController
     public function update(Request $request): JsonResponse
     {
         try {
-            $user = $this->getCurrentUser();
-        } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
-        }
+            if (!$user = $this->security->getUser()) {
+                throw new \Exception('User is not authenticated');
+            }
 
-        $projectData = json_decode($request->getContent(), true);
+            $projectData = json_decode($request->getContent(), true);
 
-        if (empty($projectData['id'])) {
-            return $this->json(['error' => 'ID проекта не указан'], Response::HTTP_BAD_REQUEST);
-        }
+            if (empty($projectData['id'])) {
+                throw new \Exception('Title is required');
+            }
 
-        try {
             $projectData['user'] = $user;
             $project = $this->projectService->updateProject($projectData);
 
             return $this->json([
-                'message' => 'Проект успешно обновлен',
+                'message' => 'Project updated successfully',
                 'project' => $project->getId(),
                 'userId' => $user->getId()
             ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            $response = $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            $this->requestLogger->logRequest($request, $response);
+            return $response;
         }
     }
 }
