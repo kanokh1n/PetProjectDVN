@@ -22,4 +22,4 @@ api_create_project:
 api_update_project:
     path: /api/project/update
     controller: App\Controller\ProjectController::update
-    methods: POST
+    methods: PUT

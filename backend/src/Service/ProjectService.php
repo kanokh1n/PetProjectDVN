@@ -3,29 +3,25 @@
 namespace App\Service;
 
 use App\Entity\Projects;
+use App\Repository\ProjectsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ProjectService
 {
-    private $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
-    }
+    public function __construct(
+        private readonly ProjectsRepository $projectsRepository,
+        private readonly EntityManagerInterface $entityManager
+    ) {}
 
     public function createProject(array $projectData): Projects {
 
-        $existingProject = $this->entityManager
-            ->getRepository(Projects::class)
-            ->findOneBy(['title' => $projectData['title']]);
-
-        if ($existingProject) {
-            throw new \Exception('Проект с таким названием уже существует');
+        if ($this->projectsRepository->existsByTitle($projectData['title'])) {
+            throw new \Exception('Project with this title already exists');
         }
 
         $project = new Projects();
         $project->setTitle($projectData['title']);
-        $project->setUserId($projectData['user']);
+        $project->setUser($projectData['user']);
 
         $this->entityManager->persist($project);
         $this->entityManager->flush();
@@ -36,35 +32,26 @@ class ProjectService
     public function updateProject(array $projectData): Projects
     {
         if (empty($projectData['id'])) {
-            throw new \Exception('ID проекта не указан');
+            throw new \Exception('Project id is required');
         }
 
-        $project = $this->entityManager
-            ->getRepository(Projects::class)
-            ->find($projectData['id']);
+        $existingProject = $this->projectsRepository->findOneById($projectData['id']);
 
-        if (!$project) {
-            throw new \Exception('Проект не найден');
+        if (!$existingProject) {
+            throw new \Exception('Project not found');
         }
 
-        if ($project->getUser()->getId() !== $projectData['user']->getId())  {
-            throw new \Exception('У вас нет прав на редактирование этого проекта');
+        if ($existingProject->getUser()->getId() !== $projectData['user']->getId())  {
+            throw new \Exception('You can not edit this project');
         }
 
-        if (!empty($projectData['title'])) {
-            $existingProject = $this->entityManager
-                ->getRepository(Projects::class)
-                ->findOneBy(['title' => $projectData['title']]);
-
-            if ($existingProject && $existingProject->getTitle() !== $project->getTitle()) {
-                throw new \Exception('Проект с таким названием уже существует');
-            }
-
-            $project->setTitle($projectData['title']);
+        if ($this->projectsRepository->findOneByTitle($projectData['title']) == $existingProject->getTitle()) {
+            throw new \Exception('Project with this title already exists');
         }
 
+        $existingProject->setTitle($projectData['title']);
         $this->entityManager->flush();
 
-        return $project;
+        return $existingProject;
     }
 }
