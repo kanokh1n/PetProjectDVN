@@ -29,6 +29,9 @@ class Projects
     #[Gedmo\Timestampable(on: 'update')]
     private ?\DateTimeImmutable $updated_at = null;
 
+    #[ORM\OneToOne(mappedBy: 'projects', cascade: ['persist', 'remove'])]
+    private ?ProjectInfo $projectInfo = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -82,6 +85,23 @@ class Projects
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getProjectInfo(): ?ProjectInfo
+    {
+        return $this->projectInfo;
+    }
+
+    public function setProjectInfo(ProjectInfo $projectInfo): static
+    {
+        // set the owning side of the relation if necessary
+        if ($projectInfo->getProject() !== $this) {
+            $projectInfo->setProject($this);
+        }
+
+        $this->projectInfo = $projectInfo;
 
         return $this;
     }

@@ -1,6 +1,5 @@
 <?php
 
-// src/Service/RequestLogger.php
 namespace App\Service;
 
 use App\Entity\RequestLogs;
@@ -13,6 +12,7 @@ class RequestLogger
     public function __construct(
         private readonly EntityManagerInterface $entityManager
     ) {}
+
 
     public function logRequest(Request $request, Response $response): void {
 

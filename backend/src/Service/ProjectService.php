@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\ProjectInfo;
 use App\Entity\Projects;
 use App\Repository\ProjectsRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,9 +20,14 @@ class ProjectService
             throw new \Exception('Project with this title already exists');
         }
 
+        $projectInfo = new ProjectInfo();
         $project = new Projects();
+
         $project->setTitle($projectData['title']);
         $project->setUser($projectData['user']);
+        $projectInfo->setCurrentAmount(0);
+        $projectInfo->setGoalAmount($projectData['goalAmount']);
+        $project->setProjectInfo($projectInfo);
 
         $this->entityManager->persist($project);
         $this->entityManager->flush();

@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Service\ProjectService;
 use App\Service\RequestLogger;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
