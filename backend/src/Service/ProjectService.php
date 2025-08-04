@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\ProjectInfo;
+use App\Dto\CreateProjectRequest;
 use App\Entity\Projects;
 use App\Repository\ProjectsRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,15 +15,25 @@ class ProjectService
         private readonly EntityManagerInterface $entityManager
     ) {}
 
-    public function createProject(array $projectData): Projects {
-
-        if ($this->projectsRepository->existsByTitle($projectData['title'])) {
+    public function createProject(CreateProjectRequest $dto): Projects
+    {
+        if ($this->projectsRepository->existsByTitle($dto->title)) {
             throw new \Exception('Project with this title already exists');
         }
 
+        $projectInfo = new ProjectInfo();
         $project = new Projects();
-        $project->setTitle($projectData['title']);
-        $project->setUser($projectData['user']);
+
+        $project->setTitle($dto->title);
+        $project->setUser($dto->user);
+
+        $projectInfo->setDescription($dto->description);
+        $projectInfo->setGithubLink($dto->githubLink);
+        $projectInfo->setTgLink($dto->tgLink);
+        $projectInfo->setCurrentAmount(0);
+        $projectInfo->setGoalAmount($dto->goalAmount);
+
+        $project->setProjectInfo($projectInfo);
 
         $this->entityManager->persist($project);
         $this->entityManager->flush();
