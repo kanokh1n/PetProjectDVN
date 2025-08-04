@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Dto\UpdateProjectRequest;
 use App\Service\ProjectService;
 use App\Service\RequestLogger;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -23,9 +24,9 @@ final class ProjectController extends AbstractController
     ){}
 
     #[Route('/api/project/create', name: 'app_create_project', methods: ['POST'])]
-    public function create(Request $request, Security $security, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
+    public function create(Request $request, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
     {
-        $user = $security->getUser();
+        $user = $this->security->getUser();
 
         try {
             $dto = $serializer->deserialize(
@@ -82,33 +83,64 @@ final class ProjectController extends AbstractController
 
 
     #[Route('/api/project/update', name: 'app_update_project', methods: ['PUT'])]
-    public function update(Request $request, Security $security): JsonResponse
-    {
+    public function update(Request $request, ValidatorInterface $validator, SerializerInterface $serializer
+    ): JsonResponse {
+        $user = $this->security->getUser();
+
+        if (!$user) {
+            $response = $this->json(['error' => 'User is not authenticated'], JsonResponse::HTTP_UNAUTHORIZED);
+            $this->requestLogger->logRequest($request, $response);
+            return $response;
+        }
+
         try {
-            if (!$user = $this->security->getUser()) {
-                throw new \Exception('User is not authenticated');
+            $dto = $serializer->deserialize(
+                $request->getContent(),
+                UpdateProjectRequest::class,
+                'json'
+            );
+        } catch (\Exception $e) {
+            $response = $this->json([
+                'error' => 'Invalid JSON format',
+                'details' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+
+            $this->requestLogger->logRequest($request, $response);
+            return $response;
+        }
+
+        $dto->user = $user;
+
+        $violations = $validator->validate($dto);
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $violation) {
+                $errors[$violation->getPropertyPath()] = $violation->getMessage();
             }
 
-            $projectData = json_decode($request->getContent(), true);
+            $response = $this->json(['errors' => $errors], JsonResponse::HTTP_BAD_REQUEST);
+            $this->requestLogger->logRequest($request, $response);
+            return $response;
+        }
 
-            if (empty($projectData['id'])) {
-                throw new \Exception('ProjectId is empty');
-            }
-
-            $projectData['user'] = $user;
-            $project = $this->projectService->updateProject($projectData);
+        try {
+            $project = $this->projectService->updateProject($dto);
 
             return $this->json([
                 'message' => 'Project updated successfully',
                 'project' => $project->getId(),
-                'userId' => $user->getId()
+                'userId' => $user->getId(),
             ]);
         } catch (\Exception $e) {
-            $response = $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            $response = $this->json([
+                'error' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+
             $this->requestLogger->logRequest($request, $response);
             return $response;
         }
     }
+
     /*#[Route('/api/project/{id}', name: 'app_get_project', methods: ['GET'])]
     public function getCurrentProject(int $id, Security $security, Request $request): JsonResponse{
 

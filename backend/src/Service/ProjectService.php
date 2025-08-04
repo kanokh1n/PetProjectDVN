@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Dto\UpdateProjectRequest;
 use App\Entity\ProjectInfo;
 use App\Dto\CreateProjectRequest;
 use App\Entity\Projects;
@@ -41,27 +42,25 @@ class ProjectService
         return $project;
     }
 
-    public function updateProject(array $projectData): Projects
+    public function updateProject(UpdateProjectRequest $dto): Projects
     {
-        if (empty($projectData['id'])) {
-            throw new \Exception('Project id is required');
-        }
-
-        $existingProject = $this->projectsRepository->findOneById($projectData['id']);
+        $existingProject = $this->projectsRepository->findOneByIdWithInfo($dto->id);
 
         if (!$existingProject) {
             throw new \Exception('Project not found');
         }
 
-        if ($existingProject->getUser()->getId() !== $projectData['user']->getId())  {
-            throw new \Exception('You can not edit this project');
+        if ($existingProject->getUser()->getId() !== $dto->user->getId()) {
+            throw new \Exception('You cannot edit this project');
         }
 
-        if ($this->projectsRepository->findOneByTitle($projectData['title']) == $existingProject->getTitle()) {
+        $existingByTitle = $this->projectsRepository->findOneByTitle($dto->title);
+        if ($existingByTitle && $existingByTitle->getId() !== $dto->id) {
             throw new \Exception('Project with this title already exists');
         }
 
-        $existingProject->setTitle($projectData['title']);
+        $existingProject->setTitle($dto->title);
+
         $this->entityManager->flush();
 
         return $existingProject;
